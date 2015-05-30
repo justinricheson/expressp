@@ -13,21 +13,29 @@ let test p str =
     | Success(result, _, _)   -> printfn "Success: %A" result
     | Failure(errorMsg, _, _) -> printfn "Failure: %s" errorMsg
 
-let number : Parser<_, unit> =
-    numberLiteral NumberLiteralOptions.None "missing number" 
-    |>> fun num -> int num.String
+let number = many1 digit |>> fun ds -> int <| String.Concat(ds)
 
-let op : Parser<_, unit> =
+let op : Parser<int -> int -> int, unit> =
     charReturn '+' (+) <|>
     charReturn '-' (-) <|>
     charReturn '*' (*) <|>
     charReturn '/' (/)
     
+let expression, expressionImpl = createParserForwardedToRef()
+do expressionImpl :=
+    choice[
+        number;
+        between (pchar '(') (pchar ')') expression;]
+    
 
 [<EntryPoint>]
 let main argv = 
 
-    test op "//"
+    test expression "((123123))"
     Console.Read()
 
     0
+
+// paren expression paren
+// number op
+// single number
