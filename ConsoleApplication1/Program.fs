@@ -6,7 +6,9 @@ let rec evaluate x y =
     | [] -> x
     | (a, b)::t -> evaluate (a x b) t
 
-let number = many1 digit |>> fun ds -> float <| String.Concat(ds)
+let number : Parser<_, unit> =
+    numberLiteral NumberLiteralOptions.AllowMinusSign "Invalid number" 
+    |>> fun num -> float num.String
 
 let op : Parser<_, unit> =
     charReturn '+' (+) <|>
@@ -18,7 +20,8 @@ let opNum : Parser<_, unit> =
     pipe2 op number (fun x y -> (x, y))
 
 let expression : Parser<_, unit> =
-    attempt(pipe2 number (many1 opNum) (fun x y -> evaluate x y)) <|> number
+    attempt(pipe2 number (many1 opNum) (fun x y -> evaluate x y))
+    <|> number
 
 let test p str =
     match run (p .>> eof) str with
@@ -30,7 +33,7 @@ let main argv =
     test expression "1"
     test expression "1+2"
     test expression "1+2-3"
-    test expression "-3+1" // damnit
+    test expression "-3+1"
     test expression "1+36/3*4-2"
     Console.Read() |> ignore
 
