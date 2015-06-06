@@ -7,7 +7,9 @@ let rec evaluate x y =
     | (a, b)::t -> evaluate (a x b) t
 
 let number : Parser<_, unit> =
-    numberLiteral NumberLiteralOptions.AllowMinusSign "Invalid number" 
+    spaces
+    >>. numberLiteral NumberLiteralOptions.AllowMinusSign "Invalid number" .>>
+    spaces
     |>> fun num -> float num.String
 
 let op : Parser<_, unit> =
@@ -30,8 +32,9 @@ let test p str =
 
 [<EntryPoint>]
 let main argv = 
-    test expression "1"
-    test expression "1+2"
+    test expression "    1\t\t"
+    test expression "1 +
+    2"
     test expression "1+2-3"
     test expression "-3+1"
     test expression "1+36/3*4-2"
