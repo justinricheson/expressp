@@ -1,38 +1,20 @@
 ﻿open System
 open FParsec
+open FParsec.Primitives
+open FParsec.CharParsers
 
-let rec evaluate x y =
-    match y with
-    | [] -> x
-    | (a, b)::t -> evaluate (a x b) t
+let opp = new OperatorPrecedenceParser<float,unit,unit>()
+let expr = opp.ExpressionParser
+let term =
+    (pfloat .>> spaces) <|>
+    between (skipChar '(' >>. spaces)
+            (skipChar ')' >>. spaces) expr
+opp.TermParser <- term
 
-let betweenSpaces p = between spaces spaces p
-
-let number =
-    betweenSpaces <| numberLiteral
-        NumberLiteralOptions.AllowMinusSign
-        "Invalid number"
-        |>> fun num -> float num.String
-
-let op =
-    charReturn '+' (+) <|>
-    charReturn '-' (-) <|>
-    charReturn '*' (*) <|>
-    charReturn '/' (/)
-
-let opNum = pipe2 op number (fun x y -> (x, y))
-
-let opString =
-    attempt(pipe2 number (many1 opNum)
-        (fun x y -> evaluate x y))
-    <|> number
-
-let lParen : Parser<_, unit> = betweenSpaces <| skipChar '('
-let rParen : Parser<_, unit> = betweenSpaces <| skipChar ')'
-
-let expression =
-    attempt(opString .>> eof) <|>
-    attempt(between lParen rParen opString)
+opp.AddOperator(InfixOperator("+", spaces, 1, Associativity.Left, fun x y -> x + y))
+opp.AddOperator(InfixOperator("-", spaces, 1, Associativity.Left, fun x y -> x - y))
+opp.AddOperator(InfixOperator("*", spaces, 2, Associativity.Left, fun x y -> x * y))
+opp.AddOperator(InfixOperator("/", spaces, 2, Associativity.Left, fun x y -> x / y))
 
 let test p str =
     match run p str with
@@ -40,15 +22,9 @@ let test p str =
     | Failure(result, _, _) -> printfn "Failure: %A" result
 
 [<EntryPoint>]
-let main argv = 
-    test expression "  (  1\t)\t"
-    test expression "1 +
-    2"
-    test expression "1+2-3"
-    test expression " -3+1"
-    test expression "1+36/3*4-2"
+let main argv =
+    test expr "-1+2*(1+2    *(3))*(4\t\t\r\n*6  )"
     Console.Read() |> ignore
-
     0
 
 (*
