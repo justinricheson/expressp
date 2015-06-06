@@ -17,7 +17,7 @@ opp.AddOperator(InfixOperator("*", spaces, 2, Associativity.Left, fun x y -> x *
 opp.AddOperator(InfixOperator("/", spaces, 2, Associativity.Left, fun x y -> x / y))
 
 let test p str =
-    match run p str with
+    match run (p .>> eof) str with
     | Success(result, _, _) -> printfn "Success: %A" result
     | Failure(result, _, _) -> printfn "Failure: %A" result
 
