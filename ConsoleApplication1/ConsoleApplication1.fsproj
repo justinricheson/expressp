@@ -55,6 +55,9 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SimpleParser.fs" />
+    <Compile Include="ComplexParser.fs" />
+    <Compile Include="CustomParser.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <None Include="packages.config" />
