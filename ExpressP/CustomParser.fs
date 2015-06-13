@@ -26,10 +26,15 @@ let Or p1 p2 : Parser<_> =
         | None -> p2 input
         | _ -> r
 
-let rec ChainlHelper a p (op : Parser<'a -> 'a -> 'a>) : Parser<_> =
+let rec Chainl1Helper a p (op : Parser<'a -> 'a -> 'a>) : Parser<_> =
     Or
         <| ThenBind  op (fun f ->
            ThenBind   p (fun y ->
-           ChainlHelper (f.Value a y.Value) p op))
+           Chainl1Helper (f.Value a y.Value) p op))
         <| Return a
-let Chainl p op = ThenBind p (fun x -> ChainlHelper x.Value p op)
+let Chainl1 p op = ThenBind p (fun x -> Chainl1Helper x.Value p op)
+
+// TODO
+let Chainr1 = true
+let Nat = true
+let Literal = true
