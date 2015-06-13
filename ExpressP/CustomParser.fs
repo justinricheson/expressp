@@ -11,7 +11,7 @@ type Parser<'a> = string -> ParseResult<'a>
 let Fail     : Parser<_> = fun input -> { Result = None;   Rest = input }
 let Return a : Parser<_> = fun input -> { Result = Some a; Rest = input }
 
-let ThenBind p (f : Option<_> -> Parser<'b>) : Parser<'b> =
+let ThenBind p f : Parser<'b> =
     fun input ->
         let r = p input
         match r.Result with
@@ -26,8 +26,10 @@ let Or p1 p2 : Parser<_> =
         | None -> p2 input
         | _ -> r
 
-// Then op (fun f -> Then p (fun y -> ChainlHelper (fun () -> f x y) p op))
-let ChainlHelper a p op =
+let rec ChainlHelper a p (op : Parser<'a -> 'a -> 'a>) : Parser<_> =
     Or
-        <| (Then op op)
+        <| ThenBind  op (fun f ->
+           ThenBind   p (fun y ->
+           ChainlHelper (f.Value a y.Value) p op))
         <| Return a
+let Chainl p op = ThenBind p (fun x -> ChainlHelper x.Value p op)
