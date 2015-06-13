@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.fsproj", "{C7BB1505-0462-42E8-B528-1CA11B8AB999}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ExpressP", "ExpressP\ExpressP.fsproj", "{C7BB1505-0462-42E8-B528-1CA11B8AB999}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
