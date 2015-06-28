@@ -15,7 +15,7 @@ let ThenBind p f =
     fun input ->
         let r = p input
         match r.Result with
-        | None -> { Result = None; Rest = input } // Have to recreate the result since p returns a Parser<'a>
+        | None -> { Result = None; Rest = input } // Recreate the result since p returns a ParseResult<'a>
         | _ -> (f r.Result) r.Rest
 let Then p1 p2 = ThenBind p1 (fun r -> p2)
 
@@ -50,11 +50,11 @@ let Next = fun input ->
 
 let Sat predicate = ThenBind Next (fun n -> if predicate n.Value then Return n.Value else Fail)
 
-let Digit = ThenBind (Sat Char.IsDigit) (fun c -> Return <| Convert.ToInt32 c.Value)
+let Digit = ThenBind (Sat Char.IsDigit) (fun c -> Return <| float c.Value)
 let rec NatHelper i =
     Or
         (ThenBind Digit (fun x ->
-            NatHelper (10 * i + x.Value) ))
+            NatHelper (float 10 * i + x.Value) ))
         (Return i)
 let Nat = ThenBind Digit (fun d -> NatHelper d.Value)
 
@@ -63,3 +63,25 @@ let rec Literal input token =
     match input with
     | "" -> Return token
     | _  -> Then (LiteralChar <| char input.[0..1]) (Literal input.[1..] token)
+
+let AddSub =
+    Or
+        <| ThenBind (LiteralChar '+') (fun c -> Return (+))
+        <| ThenBind (LiteralChar '-') (fun c -> Return (-))
+
+let MulDiv =
+    Or
+        <| ThenBind (LiteralChar '*') (fun c -> Return (*))
+        <| ThenBind (LiteralChar '/') (fun c -> Return (/))
+
+let Exp = ThenBind (LiteralChar '^') (fun c -> Return ( ** ))
+
+let rec Paren = lazy
+    Then
+        <| LiteralChar '('
+        <| ThenBind Expression (fun e ->
+            Then (LiteralChar ')') (Return e.Value))
+and Expression = Chainl1 Term AddSub
+and Term = Chainl1 Factor MulDiv
+and Factor = Chainr1 Part Exp
+and Part = Or Nat Paren.Value
