@@ -1,5 +1,7 @@
 ﻿module CustomParser
 
+open System
+
 type ParseResult<'a> =
     {
         Result : Option<'a>;
@@ -40,7 +42,20 @@ let rec Chainr1 p op =
                     Return (f.Value x.Value y.Value))))
             (Return x.Value))
 
+let Next = fun input ->
+    match input with
+    | null -> { Result = None; Rest = input }
+    | ""   -> { Result = None; Rest = input }
+    | _    -> { Result = Some <| char input.[0..1]; Rest = input.[1..] }
 
+let Sat predicate = ThenBind Next (fun n -> if predicate n.Value then Return n.Value else Fail)
 
-let Nat = true
+let Digit = ThenBind (Sat Char.IsDigit) (fun c -> Return <| Convert.ToInt32 c.Value)
+let rec NatHelper i =
+    Or
+        (ThenBind Digit (fun x ->
+            NatHelper (10 * i + x.Value) ))
+        (Return i)
+let Nat = ThenBind Digit (fun d -> NatHelper d.Value)
+
 let Literal = true
