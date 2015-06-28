@@ -1,6 +1,5 @@
 ﻿open System
-open SimpleParser
-open ComplexParser // Shadow SimpleParser
+open CustomParser
 open FParsec
 
 let test p str =
@@ -10,6 +9,9 @@ let test p str =
 
 [<EntryPoint>]
 let main argv =
-    test expression "-1 + (1)"
+    //test expression "-1 + (1)"
+    let result = Expression "(611-2^3^2+1)/10-5*2"
+    printfn "%A" result.Result.Value
+
     Console.Read() |> ignore
     0

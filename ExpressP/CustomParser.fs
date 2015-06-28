@@ -46,7 +46,7 @@ let Next = fun input ->
     match input with
     | null -> { Result = None; Rest = input }
     | ""   -> { Result = None; Rest = input }
-    | _    -> { Result = Some <| char input.[0..1]; Rest = input.[1..] }
+    | _    -> { Result = Some <| char input.[0..0]; Rest = input.[1..] }
 
 let Sat predicate = ThenBind Next (fun n -> if predicate n.Value then Return n.Value else Fail)
 
@@ -62,7 +62,7 @@ let LiteralChar c = Sat (fun x -> x = c)
 let rec Literal input token =
     match input with
     | "" -> Return token
-    | _  -> Then (LiteralChar <| char input.[0..1]) (Literal input.[1..] token)
+    | _  -> Then (LiteralChar <| char input.[0..0]) (Literal input.[1..] token)
 
 let AddSub =
     Or
@@ -76,12 +76,16 @@ let MulDiv =
 
 let Exp = ThenBind (LiteralChar '^') (fun c -> Return ( ** ))
 
-let rec Paren = lazy
+// TODO when Paren, Part etc are defined, they reference this stub, which is then redefined below.
+// But the references don't get the redefined function. How to fix??
+let mutable Expression : string -> ParseResult<float> = fun input -> { Result = None; Rest = "" }
+let Paren =
     Then
         <| LiteralChar '('
         <| ThenBind Expression (fun e ->
             Then (LiteralChar ')') (Return e.Value))
-and Expression = Chainl1 Term AddSub
-and Term = Chainl1 Factor MulDiv
-and Factor = Chainr1 Part Exp
-and Part = Or Nat Paren.Value
+let Part = Or Nat Paren
+let Factor = Chainr1 Part Exp
+let Term = Chainl1 Factor MulDiv
+
+Expression <- Chainl1 Term AddSub
