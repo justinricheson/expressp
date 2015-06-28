@@ -50,7 +50,7 @@ let Next = fun input ->
 
 let Sat predicate = ThenBind Next (fun n -> if predicate n.Value then Return n.Value else Fail)
 
-let Digit = ThenBind (Sat Char.IsDigit) (fun c -> Return <| float c.Value)
+let Digit = ThenBind (Sat Char.IsDigit) (fun c -> Return (float (c.Value.ToString())))
 let rec NatHelper i =
     Or
         (ThenBind Digit (fun x ->
@@ -76,16 +76,12 @@ let MulDiv =
 
 let Exp = ThenBind (LiteralChar '^') (fun c -> Return ( ** ))
 
-// TODO when Paren, Part etc are defined, they reference this stub, which is then redefined below.
-// But the references don't get the redefined function. How to fix??
-let mutable Expression : string -> ParseResult<float> = fun input -> { Result = None; Rest = "" }
-let Paren =
-    Then
-        <| LiteralChar '('
-        <| ThenBind Expression (fun e ->
-            Then (LiteralChar ')') (Return e.Value))
-let Part = Or Nat Paren
-let Factor = Chainr1 Part Exp
-let Term = Chainl1 Factor MulDiv
-
-Expression <- Chainl1 Term AddSub
+let rec Expression = Chainl1 Term AddSub
+and Term = Chainl1 Factor MulDiv
+and Factor = Chainr1 Part Exp
+and Part = Or Nat Paren
+and Paren =
+    ThenBind
+      (LiteralChar '(')
+      (fun _ -> ThenBind Expression (fun e ->
+            Then (LiteralChar ')') (Return e.Value)))
