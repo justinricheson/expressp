@@ -58,4 +58,8 @@ let rec NatHelper i =
         (Return i)
 let Nat = ThenBind Digit (fun d -> NatHelper d.Value)
 
-let Literal = true
+let LiteralChar c = Sat (fun x -> x = c)
+let rec Literal input token =
+    match input with
+    | "" -> Return token
+    | _  -> Then (LiteralChar <| char input.[0..1]) (Literal input.[1..] token)
