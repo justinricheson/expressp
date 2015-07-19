@@ -10,8 +10,10 @@ let test p str =
 [<EntryPoint>]
 let main argv =
     //test expression "-1 + (1)"
-    let result = Expression "(611-2^3^2+1)/10-5*2"
-    printfn "%A" result.Result.Value
+    let result = Expression "(611-2^3^2+1)/10-5*3"
+    match result.Result with
+    | Some value -> printfn "%A" value
+    | None -> printfn "ERROR"
 
     Console.Read() |> ignore
     0
